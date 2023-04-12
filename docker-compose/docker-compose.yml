@@ -1,0 +1,58 @@
+version: "2.1"
+
+volumes:
+  lsp_pgdata:
+    driver: local
+
+services:
+  reshare_dcb_pg:
+    container_name: reshare_dcb_pg
+    hostname: reshare_dcb_pg
+    hostname: postgres
+    image: postgres:13
+    restart: "no"
+    command: postgres -c 'max_connections=200'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pgpassword
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+
+  keycloak:
+    container_name: reshare_dcb_keycloak
+    entrypoint: /opt/keycloak/bin/kc.sh start-dev
+    hostname: keycloak
+    image: docker.libsdev.k-int.com/reshare/hub-authn:1.1.0-SNAPSHOT
+    restart: "no"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=CHANGE_ME_NOW__DO_THIS
+      - KEYCLOAK_URL="http://localhost/"
+      - KC_HTTP_PORT=8080
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://reshare_dcb_pg:5432/kc_reshare_dcb
+      - KC_DB_URL_HOST=reshare_dcb_pg
+      - KC_DB_URL_DATABASE=kc_reshare_dcb
+      - KC_DB_PORT=5432
+      - KC_DB_USERNAME=kc_reshare_dcb
+      - KC_DB_PASSWORD=kc_reshare_dcb
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_STRICT="false"
+      - KC_HOSTNAME_STRICT_HTTPS="false"
+      - KC_HTTP_ENABLED="true"
+      - PROXY_ADDRESS_FORWARDING="true"
+      - KC_SPI_USER_STORAGE_PROVIDER_TIMEOUT=15000
+    ports:
+      - 8080:8080
+    depends_on:
+      - reshare_dcb_pg
+
+
+
+
+
+
+# docker.libsdev.k-int.com/knowledgeintegration/reshare-dcb:native-next
