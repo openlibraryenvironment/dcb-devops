@@ -50,9 +50,26 @@ services:
     depends_on:
       - reshare_dcb_pg
 
-
-
-
-
-
-# docker.libsdev.k-int.com/knowledgeintegration/reshare-dcb:native-next
+  reshare_dcb:
+    container_name: reshare_dcb
+    image: docker.libsdev.k-int.com/knowledgeintegration/reshare-dcb:native-next
+    environment:
+      - DATASOURCE_HOST=reshare_dcb_pg
+      - DATASOURCE_PORT=5432
+      - DATASOURCE_DB=reshare_dcb
+      - r2dbc_datasources_default_url=r2dbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
+      - r2dbc_datasources_default_username=reshare_dcb
+      - r2dbc_datasources_default_password=reshare_dcb
+      # - r2dbc_datasources_default_driver=postgres
+      # - r2dbc_datasources_default_host=reshare_dcb
+      # - r2dbc_datasources_default_port=5432
+      # - r2dbc_datasources_default_database=reshare_dcb
+      - datasources_default_url=jdbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
+      - datasources_default_username=reshare_dcb
+      - datasources_default_password=reshare_dcb
+      - KEYCLOAK_CERT_URL=http://localhost:8080/realms/reshare-hub/protocol/openid-connect/certs
+    ports: 
+      - 8081:8080
+    depends_on:
+      - reshare_dcb_pg
+      
