@@ -25,7 +25,7 @@ services:
     container_name: reshare_dcb_keycloak
     entrypoint: /opt/keycloak/bin/kc.sh start-dev
     hostname: keycloak
-    image: docker.libsdev.k-int.com/reshare/hub-authn:1.1.0-SNAPSHOT
+    image: docker.libsdev.k-int.com/reshare/hub-authn:latest
     restart: "no"
     environment:
       - KEYCLOAK_ADMIN=admin

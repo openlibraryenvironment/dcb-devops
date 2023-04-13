@@ -161,6 +161,38 @@ This should return a JWT which you can cut and paste into jwt.io - Check that th
 
 Assuming all has gone well up to this point, you are ready to interact with reshare-dcb itself.
 
+Reshare-dcb uses UUID4 for some record identifiers. In order to be able to generate UUID4s you will need a context namespace. This can be obtained with the following sequence
+
+    export TARGET="http://localhost:8080"
+    export RESHARE_ROOT_UUID=`uuidgen --sha1 -n @dns --name projectreshare.org`
+    export AGENCIES_NS_UUID=`uuidgen --sha1 -n $RESHARE_ROOT_UUID --name Agency`
+    export HOSTLMS_NS_UUID=`uuidgen --sha1 -n $RESHARE_ROOT_UUID --name HostLms`
+    export LOCATION_NS_UUID=`uuidgen --sha1 -n $RESHARE_ROOT_UUID --name Location`
+
+Get a TOKEN to use via the keycloak endpoint - using the login script from the scripts directory
+
+export TOKEN=`login`
+
+or by hand
+
+    TOKEN=`curl -s -d client_id=dcb -d client_secret=YOUR_CLIENT_SECRET -d username=admin -d password=admin -d grant_type=password http://localhost:8080/realms/reshare-hub/protocol/openid-connect/token | jq .access_token -r`
+
+In order to add a hostLMS which will be used in the ingest process, post to the authenticated hostlmss endpoint with the details of your hostLMS. For example
+
+    curl -X POST $TARGET/hostlmss -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d '{ 
+      "id":"'`uuidgen --sha1 -n $HOSTLMS_NS_UUID --name ARCHWAY`'", 
+      "code":"MYHOSTLMS", 
+      "name":"My Host LMS", 
+      "lmsClientClass": "org.olf.reshare.dcb.core.interaction.sierra.SierraLmsClient", 
+      "clientConfig": { 
+        "base-url": "https://host.name.of.server:443",
+        "key": "KEY_OF_SERVER",
+        "page-size": "1000",
+        "secret": "SECRET_OF_SERVER",
+        "ingest": "true"
+      } 
+    }'
+
 
 
 
