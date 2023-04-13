@@ -1,7 +1,7 @@
 version: "2.1"
 
 volumes:
-  lsp_pgdata:
+  postgres_data:
     driver: local
 
 services:
@@ -18,6 +18,7 @@ services:
       - POSTGRES_DB=postgres
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
 
@@ -26,7 +27,7 @@ services:
     entrypoint: /opt/keycloak/bin/kc.sh start-dev
     hostname: keycloak
     image: docker.libsdev.k-int.com/reshare/hub-authn:latest
-    restart: "no"
+    restart: on-failure
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=CHANGE_ME_NOW__DO_THIS
@@ -65,7 +66,7 @@ services:
       # - r2dbc_datasources_default_driver=postgres
       - R2DBC_DATASOURCES_DEFAULT_HOST=reshare_dcb_pg
       # WARNING: problem in postgres_r2dbc - setting port seems to force IPV6 which won'w work
-      # - R2DBC_DATASOURCES_DEFAULT_PORT=5432
+      - R2DBC_DATASOURCES_DEFAULT_PORT=5432
       - R2DBC_DATASOURCES_DEFAULT_DATABASE=reshare_dcb
       - DATASOURCES_DEFAULT_URL=jdbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
       - DATASOURCES_DEFAULT_USERNAME=reshare_dcb
@@ -75,4 +76,5 @@ services:
       - 8081:8080
     depends_on:
       - reshare_dcb_pg
+    restart: on-failure
       
