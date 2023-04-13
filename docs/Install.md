@@ -7,11 +7,15 @@
 
 ### Keycloak
 
+The source project for the reshare-dcb configured keycloak is https://github.com/k-int/reshare-hub-keycloak
+
 ## ReShare-DCB service
+
+The source git project for reshare-dcb-service is https://github.com/openlibraryenvironment/reshare-dcb-service/
 
 # Installation
 
-## docker-compose
+## Quick Start: docker-compose
 
 The easiest way to evaluate reshare-dcb is to run the docker compose scripts provided here: https://github.com/openlibraryenvironment/reshare-dcb-devops/tree/main/docker-compose. 
 Clone the repository and CD into the docker-compose directory. From there
@@ -21,6 +25,33 @@ Clone the repository and CD into the docker-compose directory. From there
 Will launch all the components needed. The docker-compose file is also a great way to see the different environment variables that impact each component in action. Regardless
 of environment, the primary way that you will configure the initial installation is through these environment variables.
 
+## Advanced: Manual build
+
+Reshare-DCB is targetted at JDK 17 and is built by the devs using the Temurin 17.0.6-tem distribution.
+
+Reshare-dcb-service is a gradle build project, which has a supplied gradlew wrapper. At the time of writing, the team is running gradle 7.5.1 locally.
+the Reshare-keycloak assemly is a maven project forked from https://github.com/inventage/keycloak-custom and currently being built by maven 3.8.1
+
+The team uses sdkman to manage jdk, gradle and maven versions in development environments.
+
+### Building the reshare keycloak service from source
+
+Ensure JDK17 and Maven >= 3.8.1
+
+    git clone https://github.com/k-int/reshare-hub-keycloak
+    cd reshare-hub-keycloak
+    ./mvnw clean install
+    
+    ** MAVEN WILL BUILD AND TEST **
+    
+    the final build artefact for stand-alone running is in server/target/keycloak/lib/quarkus-run.jar
+
+
+### Building the reshare hub service from source
+
+###
+
+###
 
 # Setup
 
