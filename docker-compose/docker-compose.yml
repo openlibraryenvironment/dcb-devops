@@ -57,14 +57,15 @@ services:
       - DATASOURCE_HOST=reshare_dcb_pg
       - DATASOURCE_PORT=5432
       - DATASOURCE_DB=reshare_dcb
-      # Putting port in seems to confuse pgr2dbc into trying to use ipv6
+      # Putting port in seems to confuse pgr2dbc into trying to use ipv6 - so commenting out here and below
       # - r2dbc_datasources_default_url=r2dbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
       # - r2dbc_datasources_default_url=r2dbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
       - R2DBC_DATASOURCES_DEFAULT_USERNAME=reshare_dcb
       - R2DBC_DATASOURCES_DEFAULT_PASSWORD=reshare_dcb
       # - r2dbc_datasources_default_driver=postgres
       - R2DBC_DATASOURCES_DEFAULT_HOST=reshare_dcb_pg
-      - R2DBC_DATASOURCES_DEFAULT_PORT=5432
+      # WARNING: problem in postgres_r2dbc - setting port seems to force IPV6 which won'w work
+      # - R2DBC_DATASOURCES_DEFAULT_PORT=5432
       - R2DBC_DATASOURCES_DEFAULT_DATABASE=reshare_dcb
       - DATASOURCES_DEFAULT_URL=jdbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
       - DATASOURCES_DEFAULT_USERNAME=reshare_dcb
