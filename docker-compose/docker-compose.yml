@@ -57,16 +57,18 @@ services:
       - DATASOURCE_HOST=reshare_dcb_pg
       - DATASOURCE_PORT=5432
       - DATASOURCE_DB=reshare_dcb
-      - r2dbc_datasources_default_url=r2dbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
-      - r2dbc_datasources_default_username=reshare_dcb
-      - r2dbc_datasources_default_password=reshare_dcb
+      # Putting port in seems to confuse pgr2dbc into trying to use ipv6
+      # - r2dbc_datasources_default_url=r2dbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
+      # - r2dbc_datasources_default_url=r2dbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
+      - R2DBC_DATASOURCES_DEFAULT_USERNAME=reshare_dcb
+      - R2DBC_DATASOURCES_DEFAULT_PASSWORD=reshare_dcb
       # - r2dbc_datasources_default_driver=postgres
-      # - r2dbc_datasources_default_host=reshare_dcb
-      # - r2dbc_datasources_default_port=5432
-      # - r2dbc_datasources_default_database=reshare_dcb
-      - datasources_default_url=jdbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
-      - datasources_default_username=reshare_dcb
-      - datasources_default_password=reshare_dcb
+      - R2DBC_DATASOURCES_DEFAULT_HOST=reshare_dcb_pg
+      - R2DBC_DATASOURCES_DEFAULT_PORT=5432
+      - R2DBC_DATASOURCES_DEFAULT_DATABASE=reshare_dcb
+      - DATASOURCES_DEFAULT_URL=jdbc:postgresql://reshare_dcb_pg:5432/reshare_dcb
+      - DATASOURCES_DEFAULT_USERNAME=reshare_dcb
+      - DATASOURCES_DEFAULT_PASSWORD=reshare_dcb
       - KEYCLOAK_CERT_URL=http://localhost:8080/realms/reshare-hub/protocol/openid-connect/certs
     ports: 
       - 8081:8080
