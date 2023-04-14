@@ -24,7 +24,7 @@ services:
 
   keycloak:
     container_name: reshare_dcb_keycloak
-    entrypoint: /opt/keycloak/bin/kc.sh start-dev
+    entrypoint: /opt/keycloak/bin/kc.sh start-dev --import-realm
     hostname: keycloak
     image: docker.libsdev.k-int.com/reshare/hub-authn:latest
     restart: on-failure
