@@ -86,7 +86,7 @@ replacing that realm name with your local choice. These instructions will defaul
 - click clients
 - click the "Create Client" button
 - Fill out the client id and name as "dcb" then click next
-- Do not Select Client Authentication "On" or "Authorization" but do enable "Implicit Flow" leave other options unchecked.
+- Select Client Authentication "On" but "Authorization" OFF do enable "Implicit Flow" leave other options unchecked.
 - Click Save
 - Visit the credentials tab of the client and take a copy of the client secret, it will be needed later on
 
@@ -235,13 +235,46 @@ We will create three new keycloak realms
     folio-snapshot - a realm for authenticating against folio snapshot
     sierra-kc-towers - a realm for authenticating against kc-towers
 
+### Configuring a FOLIO identity provider
+
+Create the new realm - for example folio-snapshot
+Select "User Federation"
+Click "Add Folio-user provider"
+Fill out console display name - E.G. "Folio-Snapshot"
+Fill out Base Url - E.G. "https://folio-snapshot-okapi.dev.folio.org"
+Fill out tenant - E.G. "diku"
+Fill out username - E.G. "diku_admin"
+Fill out password - E.G. "admin"
+Set home library derivation to "Static"
+Fill out Local System Code e.g. "diku"
+Fill out default home library - e.g. "diku" (When there is a 1:1 mapping between tenant and library these values will likely be the same)
+Leave cache policy as is
+Click Save
+
+Now create an OAuth client to export this FOLIO realm to the base reshare-hub realm - click Clients (In folio-snapshot)
+
+Click Create Client
+Call the new client "dcb"
+Click "Implicit Flow"
+SAVE
+
+Now create an identity provider iniside the base reshare=hub which will point at the newly created realm/client
+
 It is important that the alias of the identity provider matches any aliases used in the front end app - for the reshare discovery scaffold this is
 sierra-kc-towers-oidc and folio-snapshot-oidc
+
+In the base reshare-hub realm
+Click Identity Providers
+Click Keycloak OpenID Connection
+Name the new provider using a systematic naming convention like type-identifier-oidc - in this case folio-snapshot-oidc
+Display name as you like
 
 The discovery URL needs to be of the form:
 https://reshare-hub-kc.libsdev.k-int.com/realms/folio-snapshot/.well-known/openid-configuration
 
+Copy the client secret from the folio-snapshot realm / dcb client.
+
 ### Attribute mappers
 
-In order to bring over homeLibraryCode and localSystemCode from downstream systems such as folio and sierra, you will need to create a mapper in each of the identity providers.
-From the identity provider page, click mappers then add an Attribute Importer for "localSystemCode" which uses the same claim name, and then the same for "localSystemCode"
+In order to bring over homeLibraryCode and localSystemCode from downstream systems such as folio and sierra, you will need to create a mapper in each of the identity providers used by the root reshare-hub realm.
+From the identity provider page on the reshare-hub realm, click mappers then add an Attribute Importer for "localSystemCode" which uses the same claim name, and then the same for "localSystemCode"
