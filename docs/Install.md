@@ -209,3 +209,16 @@ of configuring DB connections. This will be cleaned up at some point in dev.
 By default keycloak maps roles to the JWT Claim path realm_access.roles. Micronauts oauth implementation expects roles to appear at "roles". To synchronize the two
 you should update the oauth client in the reshare_hub realm by clicking on "Client Scopes", "Roles", "Mappers", "Realm Roles"
 then in "Token Claim Name" change "realm_access.roles" to "roles"
+
+## Optimisations
+
+In early bootstrap phase it may be advisable to run a copy of the service with the ingest process disabled along-side a copy with ingest enabled. This will allow
+clients to access a dedicated API endpoint (Where ingest is disabled) and the background instance to pick up all the ingest work.
+
+## Configuring downstream identity providers (Keycloak login for FOLIO and Sierra)
+
+It is important that the alias of the identity provider matches any aliases used in the front end app - for the reshare discovery scaffold this is
+sierra-kc-towers-oidc and folio-snapshot-oidc
+
+The discovery URL needs to be of the form:
+https://reshare-hub-kc.libsdev.k-int.com/realms/folio-snapshot/.well-known/openid-configuration
