@@ -277,4 +277,4 @@ Copy the client secret from the folio-snapshot realm / dcb client.
 ### Attribute mappers
 
 In order to bring over homeLibraryCode and localSystemCode from downstream systems such as folio and sierra, you will need to create a mapper in each of the identity providers used by the root reshare-hub realm.
-From the identity provider page on the reshare-hub realm, click mappers then add an Attribute Importer for "localSystemCode" which uses the same claim name, and then the same for "localSystemCode"
+From the identity provider page on the reshare-hub realm, click mappers then add an Attribute Importer for "localSystemCode" which uses the same claim name, and then the same for "homeLibraryCode"
