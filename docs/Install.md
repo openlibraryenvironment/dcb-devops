@@ -49,7 +49,19 @@ Ensure JDK17 and Maven >= 3.8.1
 
 ### Building the reshare hub service from source
 
-###
+Clone the git repository from https://github.com/openlibraryenvironment/reshare-dcb-service
+
+    git clone https://github.com/openlibraryenvironment/reshare-dcb-service
+
+From the root directory run the gradle build
+
+    ./gradlew clean build
+
+This will build the java jar version - use ./gradlew tasks to report other tasks such as the native image builder.
+
+Service executables will be found in dcb/build/libs - with the usual flavours of stand-alone and war builds as needed by the deployer
+
+The executable is configured by environment variables, and the current list of environment variables are documented on the project readme at https://github.com/openlibraryenvironment/reshare-dcb-service
 
 ###
 
