@@ -229,8 +229,19 @@ clients to access a dedicated API endpoint (Where ingest is disabled) and the ba
 
 ## Configuring downstream identity providers (Keycloak login for FOLIO and Sierra)
 
+We will create three new keycloak realms
+
+    reshare-hub - this will be our main entrypoint and a realm which aggregates all other user sources
+    folio-snapshot - a realm for authenticating against folio snapshot
+    sierra-kc-towers - a realm for authenticating against kc-towers
+
 It is important that the alias of the identity provider matches any aliases used in the front end app - for the reshare discovery scaffold this is
 sierra-kc-towers-oidc and folio-snapshot-oidc
 
 The discovery URL needs to be of the form:
 https://reshare-hub-kc.libsdev.k-int.com/realms/folio-snapshot/.well-known/openid-configuration
+
+### Attribute mappers
+
+In order to bring over homeLibraryCode and localSystemCode from downstream systems such as folio and sierra, you will need to create a mapper in each of the identity providers.
+From the identity provider page, click mappers then add an Attribute Importer for "localSystemCode" which uses the same claim name, and then the same for "localSystemCode"
