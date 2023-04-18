@@ -215,3 +215,9 @@ In order to add a hostLMS which will be used in the ingest process, post to the 
 
 We're aware that there is currently some duplication in the ENV setup for reshare dcb. This is in part due to lack of flyway support for r2dbc and part due to different ways
 of configuring DB connections. This will be cleaned up at some point in dev.
+
+## ROLE MAPPINGS IN KEYCLOAK
+
+By default keycloak maps roles to the JWT Claim path realm_access.roles. Micronauts oauth implementation expects roles to appear at "roles". To synchronize the two
+you should update the oauth client in the reshare_hub realm by clicking on "Client Scopes", "Roles", "Mappers", "Realm Roles"
+then in "Token Claim Name" change "realm_access.roles" to "roles"
