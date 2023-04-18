@@ -86,7 +86,7 @@ replacing that realm name with your local choice. These instructions will defaul
 - click clients
 - click the "Create Client" button
 - Fill out the client id and name as "dcb" then click next
-- Select Client Authentication "On" and "Authorization" On also enable "Implicit Flow" leave other options unchecked.
+- Do not Select Client Authentication "On" or "Authorization" but do enable "Implicit Flow" leave other options unchecked.
 - Click Save
 - Visit the credentials tab of the client and take a copy of the client secret, it will be needed later on
 
