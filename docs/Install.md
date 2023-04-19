@@ -274,6 +274,18 @@ https://reshare-hub-kc.libsdev.k-int.com/realms/folio-snapshot/.well-known/openi
 
 Copy the client secret from the folio-snapshot realm / dcb client.
 
+
+In order to be able to log in using federated identity providers, the url of the base keycloak system needs to be added to the valid redirect and logout URLs on the
+dcb client of the (for example) Folio identity provider.
+
+For example, in folio-snapshot, we add "https://reshare-hub-kc.libsdev.k-int.com/ASTERISK_CHAR" as a redirect URL and post logout redirect URL to the client.
+
+Additionally, in order for the homeLibraryCode and localSystemCode claims to be added to the user profile. Create a client scope called DCBAttributes and
+add (Add by configuration) a User Attribute Mapper. In the client -> Client Scopes, click AddClientScope and add the DCBAttributes scope. 
+
+N.B. the user attributes are HomeLibraryCode and LocalSystemCode (Uppercase initial letter) the claim names are camel case (lower first letter).
+
+
 ### Attribute mappers
 
 In order to bring over homeLibraryCode and localSystemCode from downstream systems such as folio and sierra, you will need to create a mapper in each of the identity providers used by the root reshare-hub realm.
