@@ -290,3 +290,20 @@ N.B. the user attributes are HomeLibraryCode and LocalSystemCode (Uppercase init
 
 In order to bring over homeLibraryCode and localSystemCode from downstream systems such as folio and sierra, you will need to create a mapper in each of the identity providers used by the root reshare-hub realm.
 From the identity provider page on the reshare-hub realm, click mappers then add an Attribute Importer for "localSystemCode" which uses the same claim name, and then the same for "homeLibraryCode"
+
+
+
+# Troubleshooting
+
+It is sometimes useful to log on directly to the folio or sierra realms they can be connected to in the usual way - for example
+
+    curl -s -d client_id=dcb \
+            -d client_secret=SECRET_FOR_DCB_CLIENT_IN_FOLIO_REALM \
+            -d username=diku_admin \
+            -d password=admin \
+            -d grant_type=password \
+            https://reshare-hub-kc.libsdev.k-int.com/realms/folio-snapshot/protocol/openid-connect/token
+
+You can then copy the access token from the response and paste it into jwt.io to see a decoded token. If the localSystemCode, homeLibraryCode or patronId claims are not coming through
+this is a useful way to check that they are being included in the source login.
+
