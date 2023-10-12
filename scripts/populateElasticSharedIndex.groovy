@@ -26,6 +26,7 @@ HttpBuilder dcb_http = configure {
 }
 
 HttpBuilder es_http = configure {
+  // request.uri = 'https://reshare-dcb-uat-es.sph.k-int.com'
   request.uri = cfg[target].ES_BASE
 }
 
@@ -148,6 +149,13 @@ private String getIdentifier(Map record, String type) {
   return result;
 }
 
+private void extractPrimaryAuthor(Map record, StringWriter sw) {
+  Map primaryAuthor= ( record.agents?.find { it.subtype?.equals('name-personal') } )
+  if ( primaryAuthor != null ) {
+      sw.write("\"primaryAuthor\": \"${primaryAuthor.label}\",".toString());
+  }
+}
+
 private void extractYearOfPublication(Map record, StringWriter sw) {
   String dateOfPublication = record['dateOfPublication'];
   if ( dateOfPublication != null ) {
@@ -214,6 +222,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
       checkFor('derivedType',r.selectedBib.canonicalMetadata,sw);
 
       extractYearOfPublication(r.selectedBib.canonicalMetadata, sw);
+      extractPrimaryAuthor(r.selectedBib.canonicalMetadata, sw);
 
       if ( isbn )
         sw.write("\"isbn\": \"${isbn}\",".toString());
@@ -247,7 +256,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
   int retry=0;
 
   while ( !posted && retry++ < 5 ) {
-    println("Posting[${retry}] ./pages/${page_counter}.json to elasticsearch size=${reqs.length()}");
+    println("Posting[${retry}] ./pages/${page_counter}.json to elasticsearch payload size=${reqs.length()}");
     try {
       def http_res = http.put {
         request.uri.path = "/mobius-si/_bulk".toString()

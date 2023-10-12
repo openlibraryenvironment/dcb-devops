@@ -1,8 +1,8 @@
 #!/bin/bash
 
-ES_PW=`kubectl get secret reshare-dcb-es-es-elastic-user -n dcb-uat -o go-template='{{.data.elastic | base64decode}}'`
+ES_PW=`kubectl get secret reshare-dcb-es-es-elastic-user -n dcb-dev -o go-template='{{.data.elastic | base64decode}}'`
 # ES_HOME="https://reshare-dcb-uat-es.sph.k-int.com/mobius-si"
-ES_HOME="https://reshare-dcb-uat-es.sph.k-int.com"
+ES_HOME="https://reshare-dcb-dev-es.sph.k-int.com"
 ES_CREDS="elastic:$ES_PW"
 
 echo Drop old
@@ -24,6 +24,18 @@ curl -u "$ES_CREDS" -X PUT "$ES_HOME/mobius-si" \
           }
         }
       },
+      "primaryAuthor":{
+        "type":  "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256   
+          }
+        }
+      },
+      "yearOfPublication":{
+        "type": "long"
+      },
       "bibClusterId":{
         "type": "text",
         "fields": {
@@ -32,7 +44,6 @@ curl -u "$ES_CREDS" -X PUT "$ES_HOME/mobius-si" \
             "ignore_above": 256   
           }
         }
-
       },
       "members": {
         "properties": {
@@ -40,7 +51,13 @@ curl -u "$ES_CREDS" -X PUT "$ES_HOME/mobius-si" \
             "type": "keyword"
           },
           "sourceSystem": {
-            "type": "keyword"
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256   
+              }
+            }
           }
         }
       },
