@@ -182,7 +182,11 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
   int ctr=0;
   datapage.content.each { r ->
 
-    if ( ( r.title != null ) && ( r.title.length() > 0 ) ) {
+    if ( r.deleted == true ) {
+      // sw.write("{\"delete\":{\"bibClusterId\\":\"${r.clusterId}\"}}\n".toString());
+      deleteCluster(r.clusterId, http, datapage, shortstop, page_counter, config);
+    }
+    else if ( ( r.title != null ) && ( r.title.length() > 0 ) ) {
       List bib_members = [];
 
       // Add in the IDs of all bib records in this cluster so we can access the cluster via any of it's member record IDs
@@ -287,6 +291,37 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
     if ( !posted ) {
       Thread.sleep(1000)
     }
+  }
+}
+
+private void deleteCluster(String cluster_id, HttpBuilder http, Map datapage, boolean shortstop, int page_counter, Map config) {
+  println("deleting cluster ${cluster_id}")
+  try {
+    def http_res = http.post {
+      request.uri.path = "/mobius-si/_delete_by_query".toString()
+      request.uri.query = [
+      ]
+      request.accept='application/json'
+      request.contentType='application/json'
+      request.headers.'Authorization' = "Basic "+("${config.ES_UN}:${config.ES_PW}".toString().bytes.encodeBase64().toString())
+
+      request.body=[
+        "query": [
+          "match": [
+            "bibClusterId" : cluster_id
+          ]
+        ]
+      ]
+      response.success { FromServer fs, Object body ->
+        println("delete of ${cluster_id} OK");
+      }
+      response.failure { FromServer fs, Object body ->
+        println("Delete cluster : Problem body:${body} (${body?.class?.name}) fs:${fs} status:${fs.getStatusCode()}");
+      }
+    }
+  }
+  catch ( Exception e ) {
+    println("Problem: ${e.message}");
   }
 }
 
