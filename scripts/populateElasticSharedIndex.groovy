@@ -299,8 +299,7 @@ private void deleteCluster(String cluster_id, HttpBuilder http, Map datapage, bo
   try {
     def http_res = http.post {
       request.uri.path = "/mobius-si/_delete_by_query".toString()
-      request.uri.query = [
-      ]
+      // request.uri.query = [:]
       request.accept='application/json'
       request.contentType='application/json'
       request.headers.'Authorization' = "Basic "+("${config.ES_UN}:${config.ES_PW}".toString().bytes.encodeBase64().toString())
