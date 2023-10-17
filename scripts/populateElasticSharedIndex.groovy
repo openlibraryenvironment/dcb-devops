@@ -307,7 +307,7 @@ private void deleteCluster(String cluster_id, HttpBuilder http, Map datapage, bo
       request.body=[
         "query": [
           "match": [
-            "bibClusterId" : cluster_id
+            "bibClusterId.keyword" : cluster_id
           ]
         ]
       ]
