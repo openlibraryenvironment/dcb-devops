@@ -75,7 +75,7 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
     while ( !gotdata && retries++ < 5 ) {
       println("Get page[${page_counter++}] retries=[${retries}] of data with since=${since}");
       try {
-        Map datapage = getPage(http, since,1000);
+        Map datapage = getPage(config[target].DCB_BASE, http, since,1000);
         if ( datapage != null ) {
           println("Got page of ${datapage.content.size()} items... ${datapage.pageable} total num records=${datapage.totalSize}");
           if ( ( datapage.content.size() == 0 ) || ( shortstop ) ) {
@@ -95,6 +95,8 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
         }
       }
       catch(Exception e) {
+        e.printStackTrace()
+        System.exit(1);
       }
       config[target].CURSOR=since
       updateConfig(config);
@@ -103,9 +105,10 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
 }
 
 
-private Map getPage(HttpBuilder http, String since, int pagesize) {
+private Map getPage(String base, HttpBuilder http, String since, int pagesize) {
 
   Map result = null;
+
 
   def http_res = http.get {
     request.uri.path = "/clusters".toString()
@@ -115,6 +118,10 @@ private Map getPage(HttpBuilder http, String since, int pagesize) {
     ]
     if ( since != null ) {
       request.uri.query.since = since;
+      println("${base}/clusters?size:${pagesize}&since=${since}");
+    }
+    else {
+      println("${base}/clusters?size:${pagesize}");
     }
     request.accept='application/json'
     request.contentType='application/json'
@@ -182,13 +189,18 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
   StringWriter sw = new StringWriter();
 
   int ctr=0;
-  datapage.content.each { r ->
+  int delete_ctr=0;
+  int bad_ctr=0;
 
+  datapage?.content?.each { r ->
+
+    println("${ctr}");
     try {
       if ( ( r.deleted == true ) || 
            ( r.bibs == null ) ||
            ( r.bibs.size() == 0 ) ) {
         // sw.write("{\"delete\":{\"bibClusterId\\":\"${r.clusterId}\"}}\n".toString());
+        delete_ctr++;
         deleteCluster(r.clusterId, http, datapage, shortstop, page_counter, config);
       }
       else if ( ( r != null ) &&
@@ -196,7 +208,6 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
                 ( r.title.length() > 0 ) 
               ) {
 
-        println("record ${r.bibs?.size()}");
         List bib_members = [];
   
         // Add in the IDs of all bib records in this cluster so we can access the cluster via any of it's member record IDs
@@ -250,6 +261,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
         ctr++;
       }
       else {
+        bad_ctr++;
         println("NULL title encountered  : ${r?.sourceRecordId} ${r}");
         File f = new File("./bad".toString())
         f << r
@@ -258,6 +270,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
     }
     catch ( Exception e ) {
       e.printStackTrace();
+      System.exit(1);
     }
   }
 
@@ -276,7 +289,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
   int retry=0;
 
   if ( ctr > 0 ) {
-    println("Posting  : ${ctr} records");
+    println("Posting  : ${ctr} records/${delete_ctr} deletes/${bad_ctr} bad");
     while ( !posted && retry++ < 5 ) {
       println("Posting[${retry}] ./pages/${page_counter}.json to elasticsearch payload size=${reqs.length()}");
       try {
@@ -304,6 +317,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
       }
       catch ( Exception e ) {
         println("Problem: ${e.message}");
+        System.exit(1);
       }
 
       if ( !posted ) {
@@ -312,7 +326,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
     }
   }
   else {
-    println("No records in page");
+    println("No records in page (deletes=${delete_ctr},bad=${bad_ctr})");
   }
 }
 
@@ -341,7 +355,8 @@ private void deleteCluster(String cluster_id, HttpBuilder http, Map datapage, bo
     }
   }
   catch ( Exception e ) {
-    println("Problem: ${e.message}");
+    e.printStackTrace();
+    System.exit(1);
   }
 }
 
