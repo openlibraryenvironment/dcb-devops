@@ -79,6 +79,7 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
         if ( datapage != null ) {
           println("Got page of ${datapage.content.size()} items... ${datapage.pageable} total num records=${datapage.totalSize}");
           if ( ( datapage.content.size() == 0 ) || ( shortstop ) ) {
+            println("No content to post... terminate");
             moreData=false;
           }
           else {
@@ -86,9 +87,10 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
             postPage(es_http, datapage, shortstop, page_counter, config[target]);
             datapage.content.each { r ->
 	    	since = r.dateUpdated;
-                  gotdata=true
+                gotdata=true
     	    }
-    	  Thread.sleep(2000);
+            println("new date updated: ${r.dateUpdated}");
+      	    Thread.sleep(2000);
           }
         }
       }
@@ -182,69 +184,83 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
   int ctr=0;
   datapage.content.each { r ->
 
-    if ( r.deleted == true ) {
-      // sw.write("{\"delete\":{\"bibClusterId\\":\"${r.clusterId}\"}}\n".toString());
-      deleteCluster(r.clusterId, http, datapage, shortstop, page_counter, config);
-    }
-    else if ( ( r.title != null ) && ( r.title.length() > 0 ) ) {
-      List bib_members = [];
+    try {
+      if ( ( r.deleted == true ) || 
+           ( r.bibs == null ) ||
+           ( r.bibs.size() == 0 ) ) {
+        // sw.write("{\"delete\":{\"bibClusterId\\":\"${r.clusterId}\"}}\n".toString());
+        deleteCluster(r.clusterId, http, datapage, shortstop, page_counter, config);
+      }
+      else if ( ( r != null ) &&
+                ( r.title != null ) && 
+                ( r.title.length() > 0 ) 
+              ) {
 
-      // Add in the IDs of all bib records in this cluster so we can access the cluster via any of it's member record IDs
-      // bib_members.add(r.selectedBib.bibId);
-      r.bibs.each { memberbib -> 
-        // println("Looking for ${memberbib} in ${bib_members}");
-        if ( bib_members.find{ it.bibId == memberbib.bibId } == null ) {
-          if ( memberbib.bibId == r.selectedBib.bibId )
-            memberbib['primary']="true"
-          bib_members.add(memberbib);
+        println("record ${r.bibs?.size()}");
+        List bib_members = [];
+  
+        // Add in the IDs of all bib records in this cluster so we can access the cluster via any of it's member record IDs
+        // bib_members.add(r.selectedBib.bibId);
+        r.bibs.each { memberbib -> 
+          // println("Looking for ${memberbib} in ${bib_members}");
+          if ( bib_members.find{ it.bibId == memberbib.bibId } == null ) {
+            if ( memberbib.bibId == r.selectedBib.bibId )
+              memberbib['primary']="true"
+            bib_members.add(memberbib);
+          }
         }
+  
+        String isbn = getIdentifier(r.selectedBib.canonicalMetadata, 'ISBN');
+        String issn = getIdentifier(r.selectedBib.canonicalMetadata, 'ISSN');
+        // println(r.title);
+        // sw.write("{\"index\":{\"_id\":\"${r.clusterId}\"}}\n".toString());
+        sw.write("{\"index\":{\"_id\":\"${r.selectedBib.bibId}\"}}\n".toString());
+        sw.write("{\"bibClusterId\": \"${r.clusterId}\",".toString())
+        sw.write("\"title\": \"${esSafeValue(r.title)}\",".toString());
+  
+        boolean first = true;
+        sw.write("\"members\": [")
+        bib_members.each { member ->
+          if ( first ) 
+            first=false
+          else 
+            sw.write(", ");
+  
+          sw.write("{\"bibId\":\"${member.bibId}\",\"title\":\"${member.title}\",\"sourceRecordId\":\"${member.sourceRecordId}\",\"sourceSystem\":\"${member.sourceSystem}\"}");
+        }
+        sw.write("],");
+  
+        checkFor('placeOfPublication',r.selectedBib.canonicalMetadata,sw);
+        checkFor('publisher',r.selectedBib.canonicalMetadata,sw);
+        checkFor('dateOfPublication',r.selectedBib.canonicalMetadata,sw);
+        checkFor('derivedType',r.selectedBib.canonicalMetadata,sw);
+  
+        extractYearOfPublication(r.selectedBib.canonicalMetadata, sw);
+        extractPrimaryAuthor(r.selectedBib.canonicalMetadata, sw);
+  
+        if ( isbn )
+          sw.write("\"isbn\": \"${isbn}\",".toString());
+  
+        if ( issn )
+          sw.write("\"issn\": \"${issn}\",".toString());
+        sw.write("\"metadata\":")
+        sw.write(JsonOutput.toJson(r.selectedBib.canonicalMetadata));
+        sw.write("}\n")
+  
+        ctr++;
       }
-
-      String isbn = getIdentifier(r.selectedBib.canonicalMetadata, 'ISBN');
-      String issn = getIdentifier(r.selectedBib.canonicalMetadata, 'ISSN');
-      // println(r.title);
-      // sw.write("{\"index\":{\"_id\":\"${r.clusterId}\"}}\n".toString());
-      sw.write("{\"index\":{\"_id\":\"${r.selectedBib.bibId}\"}}\n".toString());
-      sw.write("{\"bibClusterId\": \"${r.clusterId}\",".toString())
-      sw.write("\"title\": \"${esSafeValue(r.title)}\",".toString());
-
-      boolean first = true;
-      sw.write("\"members\": [")
-      bib_members.each { member ->
-        if ( first ) 
-          first=false
-        else 
-          sw.write(", ");
-
-        sw.write("{\"bibId\":\"${member.bibId}\",\"title\":\"${member.title}\",\"sourceRecordId\":\"${member.sourceRecordId}\",\"sourceSystem\":\"${member.sourceSystem}\"}");
+      else {
+        println("NULL title encountered  : ${r?.sourceRecordId} ${r}");
+        File f = new File("./bad".toString())
+        f << r
       }
-      sw.write("],");
-
-      checkFor('placeOfPublication',r.selectedBib.canonicalMetadata,sw);
-      checkFor('publisher',r.selectedBib.canonicalMetadata,sw);
-      checkFor('dateOfPublication',r.selectedBib.canonicalMetadata,sw);
-      checkFor('derivedType',r.selectedBib.canonicalMetadata,sw);
-
-      extractYearOfPublication(r.selectedBib.canonicalMetadata, sw);
-      extractPrimaryAuthor(r.selectedBib.canonicalMetadata, sw);
-
-      if ( isbn )
-        sw.write("\"isbn\": \"${isbn}\",".toString());
-
-      if ( issn )
-        sw.write("\"issn\": \"${issn}\",".toString());
-      sw.write("\"metadata\":")
-      sw.write(JsonOutput.toJson(r.selectedBib.canonicalMetadata));
-      sw.write("}\n")
-
-      ctr++;
+  
     }
-    else {
-      // println("NULL title encountered  : ${r?.sourceRecordId} ${r}");
-      File f = new File("./bad".toString())
-      f << r
+    catch ( Exception e ) {
+      e.printStackTrace();
     }
   }
+
 
   String reqs = sw.toString();
 
@@ -259,43 +275,48 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
   boolean posted=false;
   int retry=0;
 
-  while ( !posted && retry++ < 5 ) {
-    println("Posting[${retry}] ./pages/${page_counter}.json to elasticsearch payload size=${reqs.length()}");
-    try {
-      def http_res = http.put {
-        request.uri.path = "/mobius-si/_bulk".toString()
-        request.uri.query = [
-          refresh:true,
-          pretty:true
-        ]
-        request.accept='application/json'
-        request.contentType='application/json'
-        request.headers.'Authorization' = "Basic "+("${config.ES_UN}:${config.ES_PW}".toString().bytes.encodeBase64().toString())
-  
-        request.body=reqs;
-        // request.headers['Authorization'] = 'Bearer '+token
-   
-        response.success { FromServer fs, Object body ->
-          println("Page of ${ctr} posted OK");
-          posted=true
-        }
-        response.failure { FromServer fs, Object body ->
-          println("Post Page : Problem body:${body} (${body?.class?.name}) fs:${fs} status:${fs.getStatusCode()}");
+  if ( ctr > 0 ) {
+    println("Posting  : ${ctr} records");
+    while ( !posted && retry++ < 5 ) {
+      println("Posting[${retry}] ./pages/${page_counter}.json to elasticsearch payload size=${reqs.length()}");
+      try {
+        def http_res = http.put {
+          request.uri.path = "/mobius-si/_bulk".toString()
+          request.uri.query = [
+            refresh:true,
+            pretty:true
+          ]
+          request.accept='application/json'
+          request.contentType='application/json'
+          request.headers.'Authorization' = "Basic "+("${config.ES_UN}:${config.ES_PW}".toString().bytes.encodeBase64().toString())
+    
+          request.body=reqs;
+          // request.headers['Authorization'] = 'Bearer '+token
+     
+          response.success { FromServer fs, Object body ->
+            println("Page of ${ctr} posted OK");
+            posted=true
+          }
+          response.failure { FromServer fs, Object body ->
+            println("Post Page : Problem body:${body} (${body?.class?.name}) fs:${fs} status:${fs.getStatusCode()}");
+          }
         }
       }
-    }
-    catch ( Exception e ) {
-      println("Problem: ${e.message}");
-    }
+      catch ( Exception e ) {
+        println("Problem: ${e.message}");
+      }
 
-    if ( !posted ) {
-      Thread.sleep(1000)
+      if ( !posted ) {
+        Thread.sleep(1000)
+      }
     }
+  }
+  else {
+    println("No records in page");
   }
 }
 
 private void deleteCluster(String cluster_id, HttpBuilder http, Map datapage, boolean shortstop, int page_counter, Map config) {
-  println("deleting cluster ${cluster_id}")
   try {
     def http_res = http.post {
       request.uri.path = "/mobius-si/_delete_by_query".toString()
@@ -312,7 +333,7 @@ private void deleteCluster(String cluster_id, HttpBuilder http, Map datapage, bo
         ]
       ]
       response.success { FromServer fs, Object body ->
-        println("delete of ${cluster_id} OK");
+        // println("delete of ${cluster_id} OK");
       }
       response.failure { FromServer fs, Object body ->
         println("Delete cluster : Problem body:${body} (${body?.class?.name}) fs:${fs} status:${fs.getStatusCode()}");
