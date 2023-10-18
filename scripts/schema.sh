@@ -13,6 +13,23 @@ curl -u "$ES_CREDS" -X DELETE "$ES_HOME/mobius-si"
 echo Create new
 curl -u "$ES_CREDS" -X PUT "$ES_HOME/mobius-si" \
       -H 'Content-Type: application/json' -d'{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "default": {
+          "tokenizer": "whitespace",
+          "filter": [ "dcb_stopwords_filter" ]
+        }
+      },
+      "filter": {
+        "dcb_stopwords_filter": {
+          "type": "stop",
+          "ignore_case": true,
+          "stopwords": [ "a", "an", "the", "in", "of", "on", "are" , "be", "if", "into", "which" ]
+        }
+      }
+    }
+  },
   "mappings": {
     "properties": {
       "title": {
