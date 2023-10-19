@@ -147,7 +147,7 @@ private Map getPage(String base, HttpBuilder http, String since, int pagesize) {
 
 private String getIdentifier(Map record, String type) {
   String result = null;
-  Map m = record.identifiers?.find { it.namespace == type }
+  Map m = record?.identifiers?.find { it.namespace == type }
   if ( m != null ) {
     // println("Found value ${m.value} for ${type}");
     result = m.value;
@@ -159,24 +159,30 @@ private String getIdentifier(Map record, String type) {
 }
 
 private void extractPrimaryAuthor(Map record, StringWriter sw) {
-  Map primaryAuthor= ( record.agents?.find { it.subtype?.equals('name-personal') } )
-  if ( primaryAuthor != null ) {
-      sw.write("\"primaryAuthor\": \"${primaryAuthor.label}\",".toString());
+  if ( record != null ) {
+    Map primaryAuthor= ( record.agents?.find { it.subtype?.equals('name-personal') } )
+    if ( primaryAuthor != null ) {
+        sw.write("\"primaryAuthor\": \"${primaryAuthor.label}\",".toString());
+    }
   }
 }
 
 private void extractYearOfPublication(Map record, StringWriter sw) {
-  String dateOfPublication = record['dateOfPublication'];
-  if ( dateOfPublication != null ) {
-    def match = ( dateOfPublication =~ /(?:(?:19|20)[0-9]{2})/ )
-    if ( match.size() == 1 ) {
-      sw.write("\"yearOfPublication\": ${match[0]},".toString());
+  if ( record != null ) {
+    String dateOfPublication = record['dateOfPublication'];
+    if ( dateOfPublication != null ) {
+      def match = ( dateOfPublication =~ /(?:(?:19|20)[0-9]{2})/ )
+      if ( match.size() == 1 ) {
+        sw.write("\"yearOfPublication\": ${match[0]},".toString());
+      }
     }
   }
 }
 
 private void checkFor(String field, Map record, StringWriter sw) {
-  if ( record[field] != null ) {
+  
+  if ( ( record != null ) && 
+       ( record[field] != null ) ) {
     // println("${field} is present : ${record[field]}");
     sw.write("\"${field}\": \"${esSafeValue(record[field])}\",".toString());
   }
