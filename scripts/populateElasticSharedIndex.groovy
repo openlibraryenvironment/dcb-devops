@@ -89,7 +89,7 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
 	    	since = r.dateUpdated;
                 gotdata=true
     	    }
-            println("new date updated: ${r.dateUpdated}");
+            println("new date updated: ${since}");
       	    Thread.sleep(2000);
           }
         }
@@ -194,7 +194,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
 
   datapage?.content?.each { r ->
 
-    println("${ctr}");
+    // println("Record ${ctr}");
     try {
       if ( ( r.deleted == true ) || 
            ( r.bibs == null ) ||
@@ -205,11 +205,17 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
       }
       else if ( ( r != null ) &&
                 ( r.title != null ) && 
-                ( r.title.length() > 0 ) 
+                ( r.title.length() > 0 ) &&
+                ( r.bibs?.size() > 0 )
               ) {
 
         List bib_members = [];
   
+	if ( r.selectedBib == null ) {
+          println("Record ${ctr} has no selected bib ${r}. Defaulting to first record");
+	  r.selectedBib = r.bibs[0];
+        }
+
         // Add in the IDs of all bib records in this cluster so we can access the cluster via any of it's member record IDs
         // bib_members.add(r.selectedBib.bibId);
         r.bibs.each { memberbib -> 
