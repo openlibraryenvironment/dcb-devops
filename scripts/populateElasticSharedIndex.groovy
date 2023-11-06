@@ -17,6 +17,16 @@ def target='default'
 // Read or set up config
 Map cfg = initialise();
 
+if ( cfg[target].running==true ) {
+  println("Already running, exiting");
+  System.exit(0);
+}
+else {
+  cfg[target].running=true;
+  cfg[target].lastStarted=(new Date()).toString();
+  updateConfig(cfg);
+}
+
 HttpBuilder keycloak = configure {
   request.uri = cfg[target].KEYCLOAK_BASE
 }
@@ -30,8 +40,17 @@ HttpBuilder es_http = configure {
   request.uri = cfg[target].ES_BASE
 }
 
-process(dcb_http, es_http, cfg, target);
-updateConfig(cfg);
+try {
+  process(dcb_http, es_http, cfg, target);
+}
+catch ( Exception e ) {
+  cfg[target].lastError = e.message
+}
+finally {
+  cfg[target].running=false;
+  cfg[target].lastFinished=(new Date()).toString();
+  updateConfig(cfg);
+}
 
 System.exit(0)
 
@@ -72,10 +91,11 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
   while ( moreData ) {
     boolean gotdata=false
     int retries=0;
-    while ( !gotdata && retries++ < 5 ) {
+    while ( moreData && !gotdata && retries++ < 5 ) {
       println("Get page[${page_counter++}] retries=[${retries}] of data with since=${since}");
+      long PAGESIZE=10
       try {
-        Map datapage = getPage(config[target].DCB_BASE, http, since,1000);
+        Map datapage = getPage(config[target].DCB_BASE, http, since,PAGESIZE);
         if ( datapage != null ) {
           println("Got page of ${datapage.content.size()} items... ${datapage.pageable} total num records=${datapage.totalSize}");
           if ( ( datapage.content.size() == 0 ) || ( shortstop ) ) {
@@ -85,12 +105,13 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
           else {
             println("postPage ${config}");
             postPage(es_http, datapage, shortstop, page_counter, config[target]);
+	    println("count");
             datapage.content.each { r ->
 	    	since = r.dateUpdated;
                 gotdata=true
     	    }
             println("new date updated: ${since}");
-      	    Thread.sleep(2000);
+      	    Thread.sleep(1000);
           }
         }
       }
@@ -105,7 +126,7 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
 }
 
 
-private Map getPage(String base, HttpBuilder http, String since, int pagesize) {
+private Map getPage(String base, HttpBuilder http, String since, long pagesize) {
 
   Map result = null;
 
@@ -205,14 +226,14 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
       if ( ( r.deleted == true ) || 
            ( r.bibs == null ) ||
            ( r.bibs.size() == 0 ) ) {
-        // sw.write("{\"delete\":{\"bibClusterId\\":\"${r.clusterId}\"}}\n".toString());
         delete_ctr++;
         deleteCluster(r.clusterId, http, datapage, shortstop, page_counter, config);
       }
       else if ( ( r != null ) &&
                 ( r.title != null ) && 
                 ( r.title.length() > 0 ) &&
-                ( r.bibs?.size() > 0 )
+                ( r.bibs?.size() > 0 ) &&
+		( r.bibs?.size() < 1000 ) 
               ) {
 
         List bib_members = [];
@@ -221,6 +242,11 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
           println("Record ${ctr} has no selected bib ${r}. Defaulting to first record");
 	  r.selectedBib = r.bibs[0];
         }
+	else {
+          if ( r.bibs?.size() > 100 ) {
+	    println("bib has a worryingly high number of attached bibs... ${r.clusterId}=${r.bibs?.size()} ${r.title}");
+	  }
+	}
 
         // Add in the IDs of all bib records in this cluster so we can access the cluster via any of it's member record IDs
         // bib_members.add(r.selectedBib.bibId);
@@ -274,7 +300,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
       }
       else {
         bad_ctr++;
-        println("NULL title encountered  : ${r?.sourceRecordId} ${r}");
+        println("BAD title encountered  : ${r?.sourceRecordId} ${r}");
         File f = new File("./bad".toString())
         f << r
       }
@@ -286,6 +312,8 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
     }
   }
 
+
+  println("POST PHASE");
 
   String reqs = sw.toString();
 
@@ -343,6 +371,7 @@ private postPage(HttpBuilder http, Map datapage, boolean shortstop, int page_cou
 }
 
 private void deleteCluster(String cluster_id, HttpBuilder http, Map datapage, boolean shortstop, int page_counter, Map config) {
+  println("delete ${cluster_id}");
   try {
     def http_res = http.post {
       request.uri.path = "/mobius-si/_delete_by_query".toString()
