@@ -1,4 +1,4 @@
-#,!/usr/bin/env groovy
+#!/usr/bin/env groovy
 
 @Grab('io.github.http-builder-ng:http-builder-ng-apache:1.0.4')
 
