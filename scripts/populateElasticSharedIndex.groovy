@@ -18,7 +18,7 @@ def target='default'
 Map cfg = initialise();
 
 if ( cfg[target].running==true ) {
-  println("Already running, exiting");
+  println("Already running, exiting - if this is in error please manually adjust cfg.json");
   System.exit(0);
 }
 else {
