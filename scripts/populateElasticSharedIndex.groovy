@@ -1,4 +1,4 @@
-#!/usr/bin/env groovy
+#,!/usr/bin/env groovy
 
 @Grab('io.github.http-builder-ng:http-builder-ng-apache:1.0.4')
 
@@ -93,7 +93,7 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
     int retries=0;
     while ( moreData && !gotdata && retries++ < 5 ) {
       println("Get page[${page_counter++}] retries=[${retries}] of data with since=${since}");
-      long PAGESIZE=10
+      long PAGESIZE=500
       try {
         Map datapage = getPage(config[target].DCB_BASE, http, since,PAGESIZE);
         if ( datapage != null ) {
