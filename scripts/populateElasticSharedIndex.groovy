@@ -94,8 +94,10 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
     while ( moreData && !gotdata && retries++ < 5 ) {
       println("Get page[${page_counter++}] retries=[${retries}] of data with since=${since}");
       long PAGESIZE=1000
+      long starttime=System.currentTimeMillis();
       try {
         Map datapage = getPage(config[target].DCB_BASE, http, since,PAGESIZE);
+        println("Elapsed=${System.currentTimeMillis() - starttime}");
         if ( datapage != null ) {
           println("Got page of ${datapage.content.size()} items... ${datapage.pageable} total num records=${datapage.totalSize}");
           if ( ( datapage.content.size() == 0 ) || ( shortstop ) ) {
@@ -104,7 +106,10 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
           }
           else {
             println("postPage ${config}");
+            starttime=System.currentTimeMillis();
             postPage(es_http, datapage, shortstop, page_counter, config[target]);
+            println("Elapsed=${System.currentTimeMillis() - starttime}");
+
 	    println("count");
             datapage.content.each { r ->
 	    	since = r.dateUpdated;
