@@ -93,7 +93,7 @@ private void process(HttpBuilder http, HttpBuilder es_http, Map config, String t
     int retries=0;
     while ( moreData && !gotdata && retries++ < 5 ) {
       println("Get page[${page_counter++}] retries=[${retries}] of data with since=${since}");
-      long PAGESIZE=500
+      long PAGESIZE=1000
       try {
         Map datapage = getPage(config[target].DCB_BASE, http, since,PAGESIZE);
         if ( datapage != null ) {
