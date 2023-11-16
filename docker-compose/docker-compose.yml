@@ -53,7 +53,7 @@ services:
 
   reshare_dcb:
     container_name: reshare_dcb
-    image: docker.libsdev.k-int.com/knowledgeintegration/reshare-dcb:native-next
+    image: docker.libsdev.k-int.com/knowledgeintegration/reshare-dcb:latest
     environment:
       - DATASOURCE_HOST=reshare_dcb_pg
       - DATASOURCE_PORT=5432

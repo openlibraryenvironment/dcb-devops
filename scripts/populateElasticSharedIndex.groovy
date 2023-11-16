@@ -61,8 +61,6 @@ private void updateConfig(Map cfg) {
 
 private void process(HttpBuilder http, HttpBuilder es_http, Map config, String target, boolean shortstop=false) {
   int page_counter=0;
-  // String since=null;
-  // String since="2023-07-10T23:20:38.677389Z"
   String since=config[target].CURSOR
   println("Cursor: ${since}");
 
