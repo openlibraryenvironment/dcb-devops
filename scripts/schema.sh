@@ -26,6 +26,12 @@ curl -u "$ES_CREDS" -X PUT "$ES_HOME/mobius-si" \
           "type": "stop",
           "ignore_case": true
         }
+      },
+      "normalizer": {
+        "lowercase_normalizer": {
+          "type": "custom",
+          "filter": ["lowercase"]
+        }
       }
     }
   },
@@ -33,18 +39,22 @@ curl -u "$ES_CREDS" -X PUT "$ES_HOME/mobius-si" \
     "properties": {
       "title": {
         "type":  "text",
+        "normalizer": "lowercase_normalizer",
         "fields": {
           "keyword": {
             "type": "keyword",
+            "normalizer": "lowercase_normalizer",
             "ignore_above": 256   
           }
         }
       },
       "primaryAuthor":{
         "type":  "text",
+        "normalizer": "lowercase_normalizer",
         "fields": {
           "keyword": {
             "type": "keyword",
+            "normalizer": "lowercase_normalizer",
             "ignore_above": 256   
           }
         }
@@ -117,9 +127,11 @@ curl -u "$ES_CREDS" -X PUT "$ES_HOME/mobius-si" \
             "properties":{
               "label":{
                 "type": "text",
+                "normalizer": "lowercase_normalizer",
                 "fields": {
                   "keyword": {
                     "type": "keyword",
+                    "normalizer": "lowercase_normalizer",
                     "ignore_above": 256   
                   }
                 }
