@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# TARGET="https://dcb-dev.sph.k-int.com"
-# TARGET="https://dcb-uat.sph.k-int.com"
+. ./setTarget.sh
 
 DCB_ROOT_UUID=`uuidgen --sha1 -n @dns --name org.olf.dcb`
 AGENCIES_NS_UUID=`uuidgen --sha1 -n $DCB_ROOT_UUID --name Agency`
@@ -18,13 +17,10 @@ do
     echo Skip header
   else
     AGENCY_UUID=`uuidgen --sha1 -n $AGENCIES_NS_UUID --name $CODE`
-    echo
     echo $TARGET code=$CODE name=$NAME lms=$LMS LAT=$LAT LON=$LON PROFILE=$PROFILE URL=$URL UUID=$AGENCY_UUID
-    echo
     if [ "$URL" = "a" ]
     then 
-      echo "Posting without URL"
-      curl -X POST "$TARGET/agencies" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
+      curl -s -X POST "$TARGET/agencies" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
         \"id\":\"$AGENCY_UUID\", 
         \"code\":\"$CODE\",
         \"name\":\"$NAME\", 
@@ -32,8 +28,7 @@ do
         \"authProfile\": \"$PROFILE\"
       }"
     else
-      echo "Posting with URL"
-      curl -X POST "$TARGET/agencies" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
+      curl -s -X POST "$TARGET/agencies" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
         \"id\":\"$AGENCY_UUID\", 
         \"code\":\"$CODE\",
         \"name\":\"$NAME\", 
@@ -43,9 +38,6 @@ do
       }"
     fi
     echo
-    echo
-
-
   fi
   ((LN=LN+1))
 done
