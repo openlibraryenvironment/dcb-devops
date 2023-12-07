@@ -11,35 +11,31 @@ TOKEN=`./login`
 
 export IMPORT_REFERENCE=`date +%Y-%m-%dT%H:%M:%S%z`
 export LN=0
-curl -s -L "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbJ3CgU6WYT4t5njNZPYHS8xjhjD8mevHVJK2oUWe5Zqwuwm_fbvv58hypPgDjXKlbr9G-8gVJz4zt/pub?gid=412322753&single=true&output=tsv" | while IFS="	" read AGENCY PICKUP DISPLAY PRINT DELIVERY LASTCOL
+curl -L "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbJ3CgU6WYT4t5njNZPYHS8xjhjD8mevHVJK2oUWe5Zqwuwm_fbvv58hypPgDjXKlbr9G-8gVJz4zt/pub?gid=412322753&single=true&output=tsv" | while IFS="	" read AGENCY PICKUP DISPLAY PRINT DELIVERY LASTCOL
 do
-  # Skip the header and any rows that start with a #
-  if [ $LN -eq 0 ] || [[ $AGENCY == \#* ]]
+  if [ $LN -eq 0 ]
   then
-    # Skip header or comment
-    true
+    echo Skip header
   else
     AGENCY_UUID=`uuidgen --sha1 -n $AGENCIES_NS_UUID --name $AGENCY`
-    LOCATION_UUID=`uuidgen --sha1 -n $LOCATION_NS_UUID --name $AGENCY:$PICKUP`
-    # echo processing: $AGENCY $PICKUP $DISPLAY $PRINT $DELIVERY - \"$AGENCY\"=$AGENCY_UUID \"$PICKUP\"=$LOCATION_UUID :
-    RESULT=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$TARGET/locations" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
+    LOCATION_UUID=`uuidgen --sha1 -n $LOCATION_NS_UUID --name $PICKUP`
+    echo
+    echo processing: $AGENCY $PICKUP $DISPLAY $PRINT $DELIVERY - \"$AGENCY\"=$AGENCY_UUID \"$PICKUP\"=$LOCATION_UUID
+    echo
+    echo "Posting without URL"
+    curl -X POST "$TARGET/locations" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
       \"id\": \"$LOCATION_UUID\",
       \"code\":\"$PICKUP\",
       \"name\":\"$DISPLAY\",
       \"type\":\"PICKUP\",
       \"agency\":\"$AGENCY_UUID\",
       \"isPickup\":true,
-      \"printLabel\":\"$PRINT\",
-      \"deliveryStops\":\"$DELIVERY\",
+      \"printLabel\":\"PRINT\",
+      \"deliveryStops\":\"DELIVERY\",
       \"importReference\": \"cli-$IMPORT_REFERENCE\"
-    }")
-
-    if [ $RESULT -eq 200 ]
-    then
-      echo "OK: $PICKUP/$DISPLAY @ $AGENCY"
-    else
-      echo "FAIL: $PICKUP/$DISPLAY @ $AGENCY"
-    fi
+    }"
+    echo
+    echo
   fi
   ((LN=LN+1))
 done
