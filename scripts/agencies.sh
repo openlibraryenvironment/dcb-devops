@@ -25,7 +25,9 @@ do
         \"code\":\"$CODE\",
         \"name\":\"$NAME\", 
         \"hostLMSCode\": \"$LMS\",
-        \"authProfile\": \"$PROFILE\"
+        \"authProfile\": \"$PROFILE\",
+	\"longitude\": $LON,
+	\"latitude\": $LAT
       }"
     else
       curl -s -X POST "$TARGET/agencies" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
@@ -34,7 +36,9 @@ do
         \"name\":\"$NAME\", 
         \"hostLMSCode\": \"$LMS\",
         \"authProfile\": \"$PROFILE\",
-        \"idpUrl\": \"$URL\"
+        \"idpUrl\": \"$URL\",
+	\"longitude\": $LON,
+	\"latitude\": $LAT
       }"
     fi
     echo
