@@ -12,7 +12,7 @@ TOKEN=`./login`
 export LN=0
 curl -L "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbJ3CgU6WYT4t5njNZPYHS8xjhjD8mevHVJK2oUWe5Zqwuwm_fbvv58hypPgDjXKlbr9G-8gVJz4zt/pub?gid=727698722&single=true&output=tsv" | while IFS="	" read CODE NAME LMS LAT LON PROFILE URL EXTRA
 do
-  if [ $LN -eq 0 ]
+  if [ $LN -eq 0 ] || [ $CODE == "-" ]
   then
     echo Skip header
   else
@@ -20,6 +20,7 @@ do
     echo $TARGET code=$CODE name=$NAME lms=$LMS LAT=$LAT LON=$LON PROFILE=$PROFILE URL=$URL UUID=$AGENCY_UUID
     if [ "$URL" = "a" ]
     then 
+      echo non-url $URL
       curl -s -X POST "$TARGET/agencies" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
         \"id\":\"$AGENCY_UUID\", 
         \"code\":\"$CODE\",
@@ -30,6 +31,7 @@ do
 	\"latitude\": $LAT
       }"
     else
+      echo URL $URL
       curl -s -X POST "$TARGET/agencies" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
         \"id\":\"$AGENCY_UUID\", 
         \"code\":\"$CODE\",
@@ -42,6 +44,9 @@ do
       }"
     fi
     echo
+    echo
   fi
+  echo next line
   ((LN=LN+1))
 done
+echo END Of file

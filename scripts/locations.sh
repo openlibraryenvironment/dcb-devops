@@ -15,7 +15,7 @@ export IMPORT_REFERENCE=`date +%Y-%m-%dT%H:%M:%S%z`
 export LN=0
 curl -L "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbJ3CgU6WYT4t5njNZPYHS8xjhjD8mevHVJK2oUWe5Zqwuwm_fbvv58hypPgDjXKlbr9G-8gVJz4zt/pub?gid=412322753&single=true&output=tsv" | while IFS="	" read AGENCY LOCCODE DISPLAY PRINT DELIVERY LAT LON IS_PICKUP LOCTYPE LASTCOL
 do
-  if [ $LN -eq 0 ]
+  if [ $LN -eq 0 ] || [ $AGENCY == "-" ]
   then
     echo Skip header
   else
