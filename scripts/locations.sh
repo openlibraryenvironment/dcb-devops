@@ -13,25 +13,25 @@ TOKEN=`./login`
 
 export IMPORT_REFERENCE=`date +%Y-%m-%dT%H:%M:%S%z`
 export LN=0
-curl -L "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbJ3CgU6WYT4t5njNZPYHS8xjhjD8mevHVJK2oUWe5Zqwuwm_fbvv58hypPgDjXKlbr9G-8gVJz4zt/pub?gid=412322753&single=true&output=tsv" | while IFS="	" read AGENCY PICKUP DISPLAY PRINT DELIVERY LAT LON LASTCOL
+curl -L "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbJ3CgU6WYT4t5njNZPYHS8xjhjD8mevHVJK2oUWe5Zqwuwm_fbvv58hypPgDjXKlbr9G-8gVJz4zt/pub?gid=412322753&single=true&output=tsv" | while IFS="	" read AGENCY LOCCODE DISPLAY PRINT DELIVERY LAT LON IS_PICKUP LOCTYPE LASTCOL
 do
-  if [ $LN -eq 0 ]
+  if [ $LN -eq 0 ] || [ $AGENCY == "-" ]
   then
     echo Skip header
   else
     AGENCY_UUID=`uuidgen --sha1 -n $AGENCIES_NS_UUID --name $AGENCY`
-    LOCATION_UUID=`uuidgen --sha1 -n $LOCATION_NS_UUID --name $PICKUP`
+    LOCATION_UUID=`uuidgen --sha1 -n $LOCATION_NS_UUID --name "$AGENCY:$LOCCODE"`
     echo
-    echo processing: $AGENCY $PICKUP $DISPLAY $PRINT $DELIVERY lat=$LAT lon=$LON - \"$AGENCY\"=$AGENCY_UUID \"$PICKUP\"=$LOCATION_UUID
+    echo processing: $AGENCY $LOCCODE $DISPLAY $PRINT $DELIVERY lat=$LAT lon=$LON - \"$AGENCY\"=$AGENCY_UUID \"$LOCCODE\"=$LOCATION_UUID
     echo
     echo "Posting without URL"
     curl -X POST "$TARGET/locations" -H "Content-Type: application/json"  -H "Authorization: Bearer $TOKEN" -d "{ 
       \"id\": \"$LOCATION_UUID\",
-      \"code\":\"$PICKUP\",
+      \"code\":\"$LOCCODE\",
       \"name\":\"$DISPLAY\",
-      \"type\":\"PICKUP\",
+      \"type\":\"$LOCTYPE\",
       \"agency\":\"$AGENCY_UUID\",
-      \"isPickup\":true,
+      \"isPickup\":$IS_PICKUP,
       \"printLabel\":\"$PRINT\",
       \"deliveryStops\":\"$DELIVERY\",
       \"latitude\": $LAT,
