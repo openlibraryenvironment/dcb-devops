@@ -102,14 +102,8 @@ private void process(HttpBuilder http, Map cfg) {
 			String offset = components.find { it.startsWith('offset')};
 			println("Expiration: ${expiration}");
 			println("Offset: ${offset}");
+			println("Resumption: ${r.resumption}");
 		}
-
-		if ( context.pageno % 100 == 0 ) {
-			println("Sleeping 5");
-			Thread.sleep(300000);
-		}
-		else
-			Thread.sleep(1000);
 
 	} while ( r.resumption?:'' != '' )
 
